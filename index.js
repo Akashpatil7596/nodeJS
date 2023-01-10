@@ -3,6 +3,9 @@
 const fs = require('fs');
 const http = require('http');
 const url = require('url');
+const slugify = require('slugify');
+const replaceTemplate = require('./modules/replaceTemplate');
+
 
 // File System //
 
@@ -41,27 +44,30 @@ const url = require('url');
 //     console.log('Success!');
 // })
 
+
   const tempCard = fs.readFileSync(`${__dirname}/templates/card.html`);
   const tempOverview = fs.readFileSync(`${__dirname}/templates/overview.html`);
   const tempProduct = fs.readFileSync(`${__dirname}/templates/product.html`);
   const data = fs.readFileSync(`${__dirname}/dev-data/dev-data.json`,'utf-8')  
 
-  const productData = JSON.parse(data);
+  const dataObj = JSON.parse(data);
 
-const server = http.createServer((req, res) => {
-    const pathName = req.url;
+    const server = http.createServer((req, res) => {
+        console.log(req.url);
+        console.log(url.parse(req.url, true));
+        const pathName = req.url;
 
     //Overview Page
     if(pathName === '/' || pathName === '/overview'){
-        // fs.readFile(`${__dirname}/template/overview.html`, (err, data) => {
-            // res.writeHead(200, {'Content-type': 'text/html'});
-            // console.log(data);
-            // res.end(data);
-        // });
         res.writeHead(200, {'Content-type': 'text/html'});
-        res.end(tempOverview);
+        const cardsHtml = dataObj.map(el => replaceTemplate(tempCard, el)).join('');
+        const output = tempOverview.toString().replace('{%PRODUCT_CARDS%}', cardsHtml);
+        console.log(output);
+        res.end(output);
 
     //Product Page
+    }else if(pathName ==='/product'){
+        res.end('This is Product!')
     }else if(pathName === '/api'){
         // fs.readFile(`${__dirname}/dev-data/dev-data.json`,'utf-8',(err, data) => {
         //     const productData = JSON.parse(data);
